@@ -1,0 +1,176 @@
+local Players = game:GetService("Players")
+local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
+local MaterialService = game:GetService("MaterialService")
+local StarterGui = game:GetService("StarterGui")
+
+local LocalPlayer = Players.LocalPlayer
+
+_G.Settings = {
+    Players = { IgnoreMe = true, IgnoreOthers = true, IgnoreTools = true },
+    Meshes = { Destroy = false, LowDetail = true, NoMesh = false, NoTexture = false },
+    Images = { Invisible = true, LowDetail = false, Destroy = false },
+    Particles = { Disable = true, Destroy = false },
+    PostEffects = true,
+    Explosions = { Smaller = true, Invisible = true, Destroy = false },
+    Clothing = true,
+    Water = true,
+    Shadows = true,
+    LowRendering = true,
+    LowQualityParts = true,
+    LowQualityModels = true,
+    ResetMaterials = true,
+    FPSCap = true,
+    EffectsDisabler = { Textures = true, VisualEffects = true, Parts = true, Particles = true, Sky = true, FullBright = true }
+}
+
+local CanBeDisabled = {"ParticleEmitter", "Trail", "Smoke", "Fire", "Sparkles"}
+if not _G.Ignore then _G.Ignore = {} end
+
+local function PartOfCharacter(inst)
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and inst:IsDescendantOf(player.Character) then
+            return true
+        end
+    end
+    return false
+end
+
+local function DescendantOfIgnore(inst)
+    for _, obj in pairs(_G.Ignore) do
+        if inst:IsDescendantOf(obj) then
+            return true
+        end
+    end
+    return false
+end
+
+local function ShouldOptimize(inst)
+    if not inst:IsDescendantOf(Players) and
+       ((_G.Settings.Players.IgnoreOthers and not PartOfCharacter(inst)) or not _G.Settings.Players.IgnoreOthers) and
+       ((_G.Settings.Players.IgnoreMe and LocalPlayer.Character and not inst:IsDescendantOf(LocalPlayer.Character)) or not _G.Settings.Players.IgnoreMe) and
+       ((_G.Settings.Players.IgnoreTools and not inst:IsA("BackpackItem") and not inst:FindFirstAncestorWhichIsA("BackpackItem")) or not _G.Settings.Players.IgnoreTools) and
+       (not table.find(_G.Ignore, inst) and not DescendantOfIgnore(inst) or #_G.Ignore <= 0)
+    then
+        return true
+    end
+    return false
+end
+
+local function OptimizeInstance(inst)
+    if not ShouldOptimize(inst) then return end
+    if inst:IsA("MeshPart") then
+        if _G.Settings.Meshes.LowDetail then
+            inst.RenderFidelity = 2
+            inst.Material = Enum.Material.Plastic
+            inst.Reflectance = 0
+        end
+        if _G.Settings.Meshes.NoMesh then inst.MeshId = "" end
+        if _G.Settings.Meshes.NoTexture then inst.TextureID = "" end
+        if _G.Settings.Meshes.Destroy then inst:Destroy() end
+    elseif inst:IsA("DataModelMesh") then
+        if _G.Settings.Meshes.NoMesh then inst.MeshId = "" end
+        if _G.Settings.Meshes.NoTexture then inst.TextureId = "" end
+        if _G.Settings.Meshes.Destroy then inst:Destroy() end
+    elseif inst:IsA("BasePart") and not inst:IsA("MeshPart") then
+        if _G.Settings.LowQualityParts or _G.Settings.EffectsDisabler.Parts then
+            inst.Material = Enum.Material.SmoothPlastic
+            inst.Reflectance = 0
+        end
+    elseif inst:IsA("Model") then
+        if _G.Settings.LowQualityModels then
+            inst.LevelOfDetail = 1
+        end
+    elseif table.find(CanBeDisabled, inst.ClassName) then
+        if _G.Settings.Particles.Disable or _G.Settings.EffectsDisabler.Particles then inst.Enabled = false end
+        if _G.Settings.Particles.Destroy then inst:Destroy() end
+    elseif inst:IsA("Explosion") then
+        if _G.Settings.Explosions.Smaller then
+            inst.BlastPressure = 1
+            inst.BlastRadius = 1
+        end
+        if _G.Settings.Explosions.Invisible then inst.Visible = false end
+        if _G.Settings.Explosions.Destroy then inst:Destroy() end
+    elseif inst:IsA("PostEffect") and _G.Settings.PostEffects then
+        inst.Enabled = false
+    elseif inst:IsA("FaceInstance") or inst:IsA("ShirtGraphic") then
+        if _G.Settings.Images.Invisible then inst.Transparency = 1 end
+        if _G.Settings.Images.Destroy then inst:Destroy() end
+    elseif inst:IsA("Decal") or inst:IsA("Texture") and _G.Settings.EffectsDisabler.Textures then
+        inst.Texture = ""
+    elseif (inst:IsA("Clothing") or inst:IsA("SurfaceAppearance") or inst:IsA("BaseWrap")) and _G.Settings.Clothing then
+        inst:Destroy()
+    elseif inst:IsA("Sky") and _G.Settings.EffectsDisabler.Sky then
+        inst.Parent = nil
+    elseif inst:IsA("TextLabel") and inst:IsDescendantOf(Workspace) then
+        inst.Font = Enum.Font.SourceSans
+        inst.TextScaled = false
+        inst.RichText = false
+        inst.TextSize = 14
+        inst.Visible = false
+    elseif (inst:IsA("BloomEffect") or inst:IsA("BlurEffect") or inst:IsA("DepthOfFieldEffect") or inst:IsA("SunRaysEffect")) and _G.Settings.EffectsDisabler.VisualEffects then
+        inst.Enabled = false
+    end
+end
+
+local function ApplyFixedOptimizations()
+    if _G.Settings.Water then
+        local terrain = workspace:FindFirstChildOfClass("Terrain")
+        if terrain then
+            terrain.WaterWaveSize = 0
+            terrain.WaterWaveSpeed = 0
+            terrain.WaterReflectance = 0
+            terrain.WaterTransparency = 0
+            if sethiddenproperty then
+                pcall(sethiddenproperty, terrain, "Decoration", false)
+            end
+        end
+    end
+    if _G.Settings.Shadows then
+        Lighting.GlobalShadows = false
+        Lighting.FogEnd = 9e9
+        Lighting.ShadowSoftness = 0
+        if sethiddenproperty then
+            pcall(sethiddenproperty, Lighting, "Technology", 2)
+        end
+    end
+    if _G.Settings.LowRendering then
+        pcall(function()
+            settings().Rendering.QualityLevel = 1
+            settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level04
+        end)
+    end
+    if _G.Settings.ResetMaterials then
+        for _, mat in pairs(MaterialService:GetChildren()) do
+            mat:Destroy()
+        end
+        MaterialService.Use2022Materials = false
+    end
+    if _G.Settings.FPSCap then
+        if setfpscap then setfpscap(1e6) end
+    end
+end
+
+task.spawn(function()
+    local descendants = game:GetDescendants()
+    for i, inst in ipairs(descendants) do
+        OptimizeInstance(inst)
+        if i % 50 == 0 then
+            task.wait(0.03)
+        end
+    end
+end)
+
+ApplyFixedOptimizations()
+
+game.DescendantAdded:Connect(function(inst)
+    task.wait(1)
+    OptimizeInstance(inst)
+end)
+
+StarterGui:SetCore("SendNotification", {
+    Title = "✅ PerformanceX Activated",
+    Text = "Made by ThawaBR • YouTube",
+    Duration = 8,
+    Button1 = "Close"
+})
