@@ -24,12 +24,6 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/ThawaBR/PerformanceX/
   - Mesh & Texture Optimizer
   - Explosion Effects Reducer
   - Clothing & Accessories Remover
-- Customization Settings:
-  - Player Ignore Options (Self/Others/Tools)
-  - Mesh Quality Controls (Destroy/LowDetail/NoMesh/NoTexture)
-  - Image Visibility Settings
-  - Particle Handling Options
-  - Special Effects Management
 - Advanced Features:
   - Material Reset
   - Terrain Optimization
@@ -39,7 +33,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/ThawaBR/PerformanceX/
 
 ## Status
 
-  - Version: 1.2.0
+  - Version: 1.0.0
 
 ## Developers
 
