@@ -22,7 +22,7 @@ _G.Settings = {
     ResetMaterials = true,
     FPSCap = true,
     ClearNilInstances = false,
-    EffectsDisabler = { Textures = true, VisualEffects = true, Parts = true, Particles = true, Sky = true, FullBright = false }
+    EffectsDisabler = { Textures = true, VisualEffects = true, Parts = true, Particles = true, Sky = true, FullBright = true }
 }
 
 local CanBeDisabled = {"ParticleEmitter", "Trail", "Smoke", "Fire", "Sparkles"}
