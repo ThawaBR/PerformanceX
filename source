@@ -21,6 +21,7 @@ _G.Settings = {
     LowQualityModels = true,
     ResetMaterials = true,
     FPSCap = true,
+    ClearNilInstances = false,
     EffectsDisabler = { Textures = true, VisualEffects = true, Parts = true, Particles = true, Sky = true, FullBright = true }
 }
 
@@ -151,15 +152,9 @@ local function ApplyFixedOptimizations()
     end
 end
 
-task.spawn(function()
-    local descendants = game:GetDescendants()
-    for i, inst in ipairs(descendants) do
-        OptimizeInstance(inst)
-        if i % 50 == 0 then
-            task.wait(0.03)
-        end
-    end
-end)
+for _, inst in ipairs(game:GetDescendants()) do
+    OptimizeInstance(inst)
+end
 
 ApplyFixedOptimizations()
 
@@ -169,7 +164,7 @@ game.DescendantAdded:Connect(function(inst)
 end)
 
 StarterGui:SetCore("SendNotification", {
-    Title = "✅ PerformanceX Activated",
+    Title = "✅ PerfomanceX Activated",
     Text = "Made by ThawaBR • YouTube",
     Duration = 8,
     Button1 = "Close"
