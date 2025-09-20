@@ -7,7 +7,7 @@ Maximize your FPS and optimize any Roblox game with advanced performance enhance
 Copy and paste this code into your executor:
 
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/ThawaBR/PerformanceX/main/source.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/ThawaBR/PerformanceX/main/source"))()
 ```
 
 ## Features
